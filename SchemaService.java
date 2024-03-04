@@ -1,10 +1,13 @@
 package com.fabi.demo;
 
+import org.springframework.stereotype.Component;
+
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 
 public class SchemaService {
 
@@ -62,4 +65,5 @@ public class SchemaService {
 
         return null;
     }
+
 }
