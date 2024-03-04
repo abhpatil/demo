@@ -1,36 +1,31 @@
 package com.fabi.demo;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Component
 public class SchemaManager {
 
-    private final Cache<String, Table> tableCache;
-    private final SchemaService schemaService;
+    private final Map<String, Table> tableCache = new HashMap<>();
+    private final SchemaService schemaService = new SchemaService();;
 
     @Autowired
-    public SchemaManager(SchemaService schemaService) {
+    public SchemaManager() {
         // Initialize the Guava cache with a refresh interval of 5 minutes
-        tableCache = CacheBuilder.newBuilder()
-                .refreshAfterWrite(5, TimeUnit.MINUTES)
-                .build();
-        this.schemaService = schemaService;
+
 
         // Call scanSchema method during initialization
         initializeCache();
     }
 
     public Table getTable(String tableName) {
-        return tableCache.getIfPresent(tableName);
+        return tableCache.get(tableName);
     }
 
     // Method to initialize the cache by calling scanSchema() of SchemaService
@@ -44,12 +39,12 @@ public class SchemaManager {
 
     // Method to get all Table objects from the cache as a List
     public List<Table> getAllTables() {
-        return tableCache.asMap().values().stream().collect(Collectors.toList());
+        return tableCache.values().stream().collect(Collectors.toList());
     }
 
     // Method to check if a table has a column with a foreign key pointing to another table in the cache
     public List<String> getNeighborsForTable(String tableName) {
-        Table table = tableCache.getIfPresent(tableName);
+        Table table = tableCache.get(tableName);
 
         if (table == null) {
             // Table not found in cache
@@ -57,7 +52,7 @@ public class SchemaManager {
         }
 
         return table.getColumns().stream()
-                .filter(column -> column.getForeignKeyTo() != null && tableCache.getIfPresent(column.getForeignKeyTo()) != null)
+                .filter(column -> column.getForeignKeyTo() != null && tableCache.get(column.getForeignKeyTo()) != null)
                 .map(Column::getForeignKeyTo)
                 .collect(Collectors.toList());
     }
